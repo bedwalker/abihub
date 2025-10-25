@@ -16,7 +16,6 @@ export const listByStudent = query({
 export const add = mutation({
   args: {
     studentId: v.id("students"),
-    authorName: v.string(),
     text: v.string(),
   },
   handler: async (ctx, args) => {
@@ -27,9 +26,12 @@ export const add = mutation({
     if (user.isAnonymous) {
       throw new Error("Anonymous users cannot add comments");
     }
+    if (!user.name) {
+      throw new Error("Please complete your profile before adding comments");
+    }
     return await ctx.db.insert("comments", {
       studentId: args.studentId,
-      authorName: args.authorName,
+      authorName: user.name,
       text: args.text,
       timestamp: Date.now(),
     });

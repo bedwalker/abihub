@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone, Search, Edit } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,8 @@ export default function Contacts() {
   const [editingUserId, setEditingUserId] = useState<Id<"users"> | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   
   const updateUserProfile = useMutation(api.users.updateUserProfile);
 
@@ -37,6 +40,8 @@ export default function Contacts() {
       setEditingUserId(userId);
       setEditName(userToEdit.name || "");
       setEditEmail(userToEdit.email || "");
+      setEditPhone(userToEdit.phone || "");
+      setEditDescription(userToEdit.description || "");
       setEditDialogOpen(true);
     }
   };
@@ -50,6 +55,8 @@ export default function Contacts() {
         userId: editingUserId,
         name: editName.trim() || undefined,
         email: editEmail.trim() || undefined,
+        phone: editPhone.trim() || undefined,
+        description: editDescription.trim() || undefined,
       });
       toast.success("Profil aktualisiert!");
       setEditDialogOpen(false);
@@ -122,6 +129,17 @@ export default function Contacts() {
                       <Mail className="w-4 h-4" />
                       <span>{currentUserProfile.email}</span>
                     </div>
+                  )}
+                  {currentUserProfile.phone && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <span>{currentUserProfile.phone}</span>
+                    </div>
+                  )}
+                  {currentUserProfile.description && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {currentUserProfile.description}
+                    </p>
                   )}
                 </div>
               </CardContent>
@@ -199,6 +217,24 @@ export default function Contacts() {
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
                   placeholder="deine@email.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefon</Label>
+                <Input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+49 123 456789"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Beschreibung</Label>
+                <Textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Über mich..."
+                  rows={3}
                 />
               </div>
               <Button type="submit" className="w-full cursor-pointer">

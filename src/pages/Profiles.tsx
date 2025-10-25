@@ -16,10 +16,10 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function Profiles() {
   const students = useQuery(api.students.list);
+  const allUsers = useQuery(api.users.listAllUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<Id<"students"> | null>(null);
   const [commentText, setCommentText] = useState("");
-  const [authorName, setAuthorName] = useState("");
   const { user } = useAuth();
 
   const comments = useQuery(
@@ -29,14 +29,27 @@ export default function Profiles() {
   const addComment = useMutation(api.comments.add);
   const removeComment = useMutation(api.comments.remove);
 
-  const filteredStudents = students?.filter((student) =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Combine students and authenticated users (excluding anonymous users)
+  const authenticatedUsers = allUsers?.filter(u => !u.isAnonymous && u.name) || [];
+  
+  const allProfiles = [
+    ...(students || []).map(s => ({ ...s, type: 'student' as const })),
+    ...authenticatedUsers.map(u => ({ 
+      _id: u._id, 
+      name: u.name!, 
+      image: u.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
+      type: 'user' as const 
+    }))
+  ];
+
+  const filteredProfiles = allProfiles.filter((profile) =>
+    profile.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const selectedStudentData = students?.find((s) => s._id === selectedStudent);
 
   const handleAddComment = async () => {
-    if (!selectedStudent || !commentText.trim() || !authorName.trim()) {
+    if (!selectedStudent || !commentText.trim()) {
       toast.error("Bitte fülle alle Felder aus");
       return;
     }
@@ -44,12 +57,10 @@ export default function Profiles() {
     try {
       await addComment({
         studentId: selectedStudent,
-        authorName: authorName.trim(),
         text: commentText.trim(),
       });
       toast.success("Kommentar hinzugefügt!");
       setCommentText("");
-      setAuthorName("");
     } catch (error) {
       toast.error("Fehler beim Hinzufügen des Kommentars");
     }
@@ -88,26 +99,29 @@ export default function Profiles() {
           />
         </div>
 
-        {/* Students Grid */}
+        {/* Profiles Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {filteredStudents?.map((student, index) => (
+          {filteredProfiles?.map((profile, index) => (
             <motion.div
-              key={student._id}
+              key={profile._id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Card
                 className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setSelectedStudent(student._id)}
+                onClick={() => profile.type === 'student' && setSelectedStudent(profile._id as Id<"students">)}
               >
                 <CardContent className="p-6 text-center">
                   <img
-                    src={student.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.name}`}
-                    alt={student.name}
+                    src={profile.image}
+                    alt={profile.name}
                     className="w-24 h-24 rounded-full mx-auto mb-4"
                   />
-                  <p className="font-medium">{student.name}</p>
+                  <p className="font-medium">{profile.name}</p>
+                  {profile.type === 'user' && (
+                    <p className="text-xs text-muted-foreground mt-1">Benutzer</p>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -138,23 +152,23 @@ export default function Profiles() {
 
             <div className="space-y-6 mt-6">
               {/* Add Comment Form */}
-              <div className="space-y-4 p-4 bg-muted rounded-lg">
-                <h3 className="font-medium">Neuer Kommentar</h3>
-                <Input
-                  placeholder="Dein Name"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Schreibe einen Kommentar..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  rows={3}
-                />
-                <Button onClick={handleAddComment} className="w-full cursor-pointer">
-                  Kommentar hinzufügen
-                </Button>
-              </div>
+              {user && !user.isAnonymous && (
+                <div className="space-y-4 p-4 bg-muted rounded-lg">
+                  <h3 className="font-medium">Neuer Kommentar</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Kommentieren als: <strong>{user.name}</strong>
+                  </p>
+                  <Textarea
+                    placeholder="Schreibe einen Kommentar..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    rows={3}
+                  />
+                  <Button onClick={handleAddComment} className="w-full cursor-pointer">
+                    Kommentar hinzufügen
+                  </Button>
+                </div>
+              )}
 
               {/* Comments List */}
               <div className="space-y-4">

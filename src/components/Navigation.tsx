@@ -146,8 +146,19 @@ export function Navigation() {
                     <span className="font-medium">Admin</span>
                   </Link>
                 )}
-                <div className="pt-4 mt-4 border-t">
-                  {user ? (
+                <div className="pt-4 mt-4 border-t space-y-2">
+                  {user && !user.isAnonymous && (
+                    <Link to="/contacts" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
+                        <Users className="w-5 h-5 mr-2" />
+                        Mein Profil
+                      </Button>
+                    </Link>
+                  )}
+                  {user && !user.isAnonymous ? (
                     <Button
                       variant="outline"
                       className="w-full cursor-pointer"
