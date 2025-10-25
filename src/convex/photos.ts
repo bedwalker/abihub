@@ -27,10 +27,7 @@ export const add = mutation({
     date: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user || user.role !== "admin") {
-      throw new Error("Only admins can add photos");
-    }
+    // Anyone can upload photos
     return await ctx.db.insert("photos", args);
   },
 });
