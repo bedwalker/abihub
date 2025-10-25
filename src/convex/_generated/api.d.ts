@@ -12,6 +12,7 @@ import type * as announcements from "../announcements.js";
 import type * as auth_emailOtp from "../auth/emailOtp.js";
 import type * as auth from "../auth.js";
 import type * as comments from "../comments.js";
+import type * as dataExport from "../dataExport.js";
 import type * as events from "../events.js";
 import type * as finances from "../finances.js";
 import type * as http from "../http.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   "auth/emailOtp": typeof auth_emailOtp;
   auth: typeof auth;
   comments: typeof comments;
+  dataExport: typeof dataExport;
   events: typeof events;
   finances: typeof finances;
   http: typeof http;
