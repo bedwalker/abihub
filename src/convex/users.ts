@@ -36,10 +36,6 @@ export const getCurrentUser = async (ctx: QueryCtx) => {
 export const listAllUsers = query({
   args: {},
   handler: async (ctx) => {
-    const currentUser = await getCurrentUser(ctx);
-    if (!currentUser || currentUser.role !== "admin") {
-      return null;
-    }
     return await ctx.db.query("users").collect();
   },
 });
