@@ -7,20 +7,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Loader2, Upload } from "lucide-react";
 
 export default function MyProfile() {
   const { user } = useAuth();
   const updateProfile = useMutation(api.users.updateUserProfile);
+  const generateUploadUrl = useMutation(api.users.generateUploadUrl);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -31,6 +34,52 @@ export default function MyProfile() {
       setImageUrl(user.image || "");
     }
   }, [user]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Bitte wähle eine Bilddatei aus");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Bild ist zu groß. Maximale Größe: 5MB");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Get upload URL
+      const uploadUrl = await generateUploadUrl();
+
+      // Upload the file
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!result.ok) {
+        throw new Error("Upload fehlgeschlagen");
+      }
+
+      const { storageId } = await result.json();
+
+      // Get the URL for the uploaded image
+      const imageUrl = `${import.meta.env.VITE_CONVEX_URL}/api/storage/${storageId}`;
+      setImageUrl(imageUrl);
+      toast.success("Bild hochgeladen!");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Fehler beim Hochladen des Bildes");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,23 +151,41 @@ export default function MyProfile() {
                     <img
                       src={imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`}
                       alt={name}
-                      className="w-32 h-32 rounded-full border-4 border-primary"
+                      className="w-32 h-32 rounded-full border-4 border-primary object-cover"
                     />
-                    <div className="absolute bottom-0 right-0 bg-primary rounded-full p-2">
-                      <Camera className="w-5 h-5 text-primary-foreground" />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading || isSubmitting}
+                      className="absolute bottom-0 right-0 bg-primary rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5 text-primary-foreground" />
+                      )}
+                    </button>
                   </div>
-                  <div className="w-full space-y-2">
-                    <Label>Profilbild URL</Label>
-                    <Input
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="https://example.com/bild.jpg"
-                      disabled={isSubmitting}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Füge eine URL zu deinem Profilbild hinzu
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <div className="text-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading || isSubmitting}
+                      className="cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {isUploading ? "Wird hochgeladen..." : "Bild hochladen"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      JPG, PNG oder GIF (max. 5MB)
                     </p>
                   </div>
                 </div>
@@ -178,7 +245,7 @@ export default function MyProfile() {
                 <Button 
                   type="submit" 
                   className="w-full cursor-pointer" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploading}
                 >
                   {isSubmitting ? (
                     <>

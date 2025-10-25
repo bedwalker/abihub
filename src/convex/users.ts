@@ -91,3 +91,14 @@ export const deleteUser = mutation({
     await ctx.db.delete(args.userId);
   },
 });
+
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new Error("You must be logged in to upload images");
+    }
+    return await ctx.storage.generateUploadUrl();
+  },
+});
