@@ -2,28 +2,15 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUser } from "./users";
 
-export const listByList = query({
-  args: { listName: v.string() },
-  handler: async (ctx, args) => {
-    return await ctx.db
-      .query("todos")
-      .withIndex("by_list", (q) => q.eq("listName", args.listName))
-      .collect();
-  },
-});
-
-export const getAllLists = query({
+export const list = query({
   args: {},
   handler: async (ctx) => {
-    const todos = await ctx.db.query("todos").collect();
-    const lists = new Set(todos.map((t) => t.listName));
-    return Array.from(lists);
+    return await ctx.db.query("todos").order("desc").collect();
   },
 });
 
 export const add = mutation({
   args: {
-    listName: v.string(),
     task: v.string(),
   },
   handler: async (ctx, args) => {
@@ -31,12 +18,9 @@ export const add = mutation({
     if (!user || user.role !== "admin") {
       throw new Error("Only admins can add tasks");
     }
-    const existing = await ctx.db
-      .query("todos")
-      .withIndex("by_list", (q) => q.eq("listName", args.listName))
-      .collect();
+    const existing = await ctx.db.query("todos").collect();
     return await ctx.db.insert("todos", {
-      ...args,
+      task: args.task,
       completed: false,
       order: existing.length,
     });
@@ -64,22 +48,5 @@ export const remove = mutation({
       throw new Error("Only admins can delete tasks");
     }
     await ctx.db.delete(args.id);
-  },
-});
-
-export const removeList = mutation({
-  args: { listName: v.string() },
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    if (!user || user.role !== "admin") {
-      throw new Error("Only admins can delete lists");
-    }
-    const todos = await ctx.db
-      .query("todos")
-      .withIndex("by_list", (q) => q.eq("listName", args.listName))
-      .collect();
-    for (const todo of todos) {
-      await ctx.db.delete(todo._id);
-    }
   },
 });

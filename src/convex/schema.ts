@@ -70,11 +70,10 @@ const schema = defineSchema(
     }),
 
     todos: defineTable({
-      listName: v.string(),
       task: v.string(),
       completed: v.boolean(),
       order: v.number(),
-    }).index("by_list", ["listName"]),
+    }),
 
     photos: defineTable({
       storageId: v.id("_storage"),
