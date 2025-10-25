@@ -38,7 +38,7 @@ export const listAllUsers = query({
   handler: async (ctx) => {
     const currentUser = await getCurrentUser(ctx);
     if (!currentUser || currentUser.role !== "admin") {
-      throw new Error("Only admins can view all users");
+      return null;
     }
     return await ctx.db.query("users").collect();
   },

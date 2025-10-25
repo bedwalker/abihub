@@ -26,7 +26,7 @@ export default function AdminSettings() {
   const [abiDate, setAbiDate] = useState(abiDateSetting || "");
   const [targetAmount, setTargetAmount] = useState(targetAmountSetting || "");
 
-  if (!user || user.role !== "admin") {
+  if (!user || user.role !== "admin" || allUsers === null) {
     return (
       <Layout>
         <div className="container max-w-4xl mx-auto p-6 md:p-8">

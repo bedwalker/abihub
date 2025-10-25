@@ -23,6 +23,7 @@ import type * as http from "../http.js";
 import type * as photos from "../photos.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
+import type * as setupAdmin from "../setupAdmin.js";
 import type * as students from "../students.js";
 import type * as todos from "../todos.js";
 import type * as users from "../users.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   photos: typeof photos;
   seedData: typeof seedData;
   settings: typeof settings;
+  setupAdmin: typeof setupAdmin;
   students: typeof students;
   todos: typeof todos;
   users: typeof users;
