@@ -139,7 +139,10 @@ export default function Todos() {
                       <Input
                         placeholder="Neue Liste erstellen..."
                         value={newListName}
-                        onChange={(e) => setNewListName(e.target.value)}
+                        onChange={(e) => {
+                          setNewListName(e.target.value);
+                          setSelectedList(null);
+                        }}
                       />
                     </div>
                   </div>

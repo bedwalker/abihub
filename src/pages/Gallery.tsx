@@ -177,48 +177,61 @@ export default function Gallery() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="cursor-pointer group relative aspect-square overflow-hidden rounded-lg border"
+              className="cursor-pointer relative aspect-square overflow-hidden rounded-lg border"
               onClick={() => setSelectedPhoto(photo.url)}
             >
               <img
                 src={photo.url || ""}
                 alt={photo.title}
-                className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <p className="text-white font-medium text-sm">{photo.title}</p>
-                <p className="text-white/80 text-xs">{photo.date}</p>
-                {user?.role === "admin" && (
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="mt-2 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(photo._id);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Löschen
-                  </Button>
-                )}
+                <p className="text-white/80 text-xs">{photo.eventName} • {photo.date}</p>
               </div>
             </motion.div>
           ))}
         </div>
 
         {/* Photo Detail Dialog */}
-        {selectedPhoto && (
-          <Dialog open={selectedPhoto !== null} onOpenChange={() => setSelectedPhoto(null)}>
-            <DialogContent className="max-w-4xl p-0">
-              <img
-                src={selectedPhoto}
-                alt="Full size"
-                className="w-full h-auto rounded-lg"
-              />
-            </DialogContent>
-          </Dialog>
-        )}
+        {selectedPhoto && (() => {
+          const photo = filteredPhotos?.find(p => p.url === selectedPhoto);
+          return (
+            <Dialog open={selectedPhoto !== null} onOpenChange={() => setSelectedPhoto(null)}>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>{photo?.title}</DialogTitle>
+                </DialogHeader>
+                <img
+                  src={selectedPhoto}
+                  alt="Full size"
+                  className="w-full h-auto rounded-lg"
+                />
+                <div className="space-y-2 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Event:</strong> {photo?.eventName}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Datum:</strong> {photo?.date}
+                  </p>
+                  {user?.role === "admin" && photo && (
+                    <Button
+                      variant="destructive"
+                      className="w-full cursor-pointer"
+                      onClick={() => {
+                        handleDelete(photo._id);
+                        setSelectedPhoto(null);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Foto löschen
+                    </Button>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          );
+        })()}
       </div>
     </Layout>
   );
