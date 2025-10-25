@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Plus, Filter } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export default function Events() {
   const events = useQuery(api.events.list);
@@ -32,6 +33,14 @@ export default function Events() {
     : sortedEvents?.filter((e) => e.category === filterCategory);
 
   const categories = ["Abi-Vorbereitung", "Mottowoche", "Party", "Prüfungen", "Streich"];
+
+  const categoryColors: Record<string, string> = {
+    "Abi-Vorbereitung": "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+    "Mottowoche": "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+    "Party": "bg-pink-500/10 text-pink-600 dark:text-pink-400 border-pink-500/20",
+    "Prüfungen": "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+    "Streich": "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +70,9 @@ export default function Events() {
     }
   };
 
+  const upcomingCount = filteredEvents?.filter(e => new Date(e.date) >= new Date()).length || 0;
+  const pastCount = (filteredEvents?.length || 0) - upcomingCount;
+
   return (
     <Layout>
       <div className="container max-w-7xl mx-auto p-6 md:p-8 space-y-8">
@@ -68,31 +80,18 @@ export default function Events() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+          className="flex flex-col gap-6"
         >
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2">Events</h1>
-            <p className="text-muted-foreground">Alle wichtigen Termine im Überblick</p>
-          </div>
-          <div className="flex gap-4 w-full md:w-auto">
-            <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle Kategorien</SelectItem>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-4xl font-bold tracking-tight mb-2">Events</h1>
+              <p className="text-muted-foreground">Alle wichtigen Termine im Überblick</p>
+            </div>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button className="cursor-pointer">
                   <Plus className="w-4 h-4 mr-2" />
-                  Event
+                  Event erstellen
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -157,47 +156,131 @@ export default function Events() {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Filter Section */}
+          <Card className="border-2">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Filter className="w-4 h-4" />
+                  <span>Filter:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    variant={filterCategory === "all" ? "default" : "outline"}
+                    className="cursor-pointer px-4 py-2 text-sm"
+                    onClick={() => setFilterCategory("all")}
+                  >
+                    Alle ({events?.length || 0})
+                  </Badge>
+                  {categories.map((cat) => {
+                    const count = events?.filter(e => e.category === cat).length || 0;
+                    return (
+                      <Badge
+                        key={cat}
+                        variant="outline"
+                        className={`cursor-pointer px-4 py-2 text-sm transition-all ${
+                          filterCategory === cat ? categoryColors[cat] : ""
+                        }`}
+                        onClick={() => setFilterCategory(cat)}
+                      >
+                        {cat} ({count})
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t flex gap-6 text-sm text-muted-foreground">
+                <div>
+                  <span className="font-medium text-foreground">{upcomingCount}</span> bevorstehend
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">{pastCount}</span> vergangen
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Events Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents?.map((event, index) => (
-            <motion.div
-              key={event._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
-              <Card className="h-full">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full mb-3">
-                        {event.category}
+        {filteredEvents && filteredEvents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event, index) => {
+              const isPast = new Date(event.date) < new Date();
+              return (
+                <motion.div
+                  key={event._id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className={`h-full hover:shadow-lg transition-shadow ${isPast ? "opacity-60" : ""}`}>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div>
+                          <Badge 
+                            variant="outline" 
+                            className={`mb-3 ${categoryColors[event.category] || ""}`}
+                          >
+                            {event.category}
+                          </Badge>
+                          {isPast && (
+                            <Badge variant="outline" className="ml-2 mb-3 bg-muted">
+                              Vergangen
+                            </Badge>
+                          )}
+                          <h3 className="text-xl font-bold mb-2 tracking-tight">{event.title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{event.description}</p>
+                        </div>
+                        <div className="space-y-2 pt-4 border-t">
+                          <div className="flex items-center gap-3 text-sm">
+                            <Calendar className="w-4 h-4 text-primary" />
+                            <span className="font-medium">{new Date(event.date).toLocaleDateString("de-DE", { 
+                              weekday: "short", 
+                              year: "numeric", 
+                              month: "long", 
+                              day: "numeric" 
+                            })}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Clock className="w-4 h-4 text-primary" />
+                            <span>{event.time} Uhr</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <MapPin className="w-4 h-4 text-primary" />
+                            <span>{event.location}</span>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="text-xl font-bold mb-2">{event.title}</h3>
-                      <p className="text-sm text-muted-foreground">{event.description}</p>
-                    </div>
-                    <div className="space-y-2 pt-4 border-t">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        <span>{new Date(event.date).toLocaleDateString("de-DE")}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Clock className="w-4 h-4 text-muted-foreground" />
-                        <span>{event.time} Uhr</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                        <span>{event.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-xl font-bold mb-2">Keine Events gefunden</h3>
+                <p className="text-muted-foreground mb-6">
+                  {filterCategory === "all" 
+                    ? "Es wurden noch keine Events erstellt." 
+                    : `Keine Events in der Kategorie "${filterCategory}".`}
+                </p>
+                <Button onClick={() => setOpen(true)} className="cursor-pointer">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Erstes Event erstellen
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
     </Layout>
   );
