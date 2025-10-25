@@ -5,13 +5,14 @@ import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Search, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Profiles() {
   const students = useQuery(api.students.list);
@@ -19,12 +20,14 @@ export default function Profiles() {
   const [selectedStudent, setSelectedStudent] = useState<Id<"students"> | null>(null);
   const [commentText, setCommentText] = useState("");
   const [authorName, setAuthorName] = useState("");
+  const { user } = useAuth();
 
   const comments = useQuery(
     api.comments.listByStudent,
     selectedStudent ? { studentId: selectedStudent } : "skip"
   );
   const addComment = useMutation(api.comments.add);
+  const removeComment = useMutation(api.comments.remove);
 
   const filteredStudents = students?.filter((student) =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -49,6 +52,16 @@ export default function Profiles() {
       setAuthorName("");
     } catch (error) {
       toast.error("Fehler beim Hinzufügen des Kommentars");
+    }
+  };
+
+  const handleDeleteComment = async (commentId: Id<"comments">) => {
+    if (!confirm("Möchtest du diesen Kommentar wirklich löschen?")) return;
+    try {
+      await removeComment({ id: commentId });
+      toast.success("Kommentar gelöscht!");
+    } catch (error) {
+      toast.error("Fehler beim Löschen des Kommentars");
     }
   };
 
@@ -90,7 +103,7 @@ export default function Profiles() {
               >
                 <CardContent className="p-6 text-center">
                   <img
-                    src={student.image}
+                    src={student.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.name}`}
                     alt={student.name}
                     className="w-24 h-24 rounded-full mx-auto mb-4"
                   />
@@ -107,7 +120,7 @@ export default function Profiles() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-4">
                 <img
-                  src={selectedStudentData?.image}
+                  src={selectedStudentData?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${selectedStudentData?.name}`}
                   alt={selectedStudentData?.name}
                   className="w-16 h-16 rounded-full"
                 />
@@ -118,6 +131,9 @@ export default function Profiles() {
                   </div>
                 </div>
               </DialogTitle>
+              <DialogDescription>
+                Schreibe Kommentare und Erinnerungen für diesen Schüler
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6 mt-6">
@@ -149,9 +165,21 @@ export default function Profiles() {
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <p className="font-medium">{comment.authorName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(comment.timestamp).toLocaleDateString("de-DE")}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(comment.timestamp).toLocaleDateString("de-DE")}
+                            </p>
+                            {user?.role === "admin" && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 cursor-pointer"
+                                onClick={() => handleDeleteComment(comment._id)}
+                              >
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <p className="text-sm">{comment.text}</p>
                       </CardContent>

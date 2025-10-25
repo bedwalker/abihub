@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { CheckCircle2, Circle, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,15 +108,16 @@ export default function Todos() {
               </SelectContent>
             </Select>
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="cursor-pointer">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Aufgabe
-                </Button>
-              </DialogTrigger>
+              <Button className="cursor-pointer" onClick={() => setOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Aufgabe
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Neue Aufgabe hinzufügen</DialogTitle>
+                  <DialogDescription>
+                    Wähle eine bestehende Liste oder erstelle eine neue
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleAddTask} className="space-y-4">
                   <div className="space-y-2">

@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { Megaphone, Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,12 +87,12 @@ export default function Announcements() {
 
   return (
     <Layout>
-      <div className="container max-w-4xl mx-auto p-6 md:p-8 space-y-8">
+      <div className="container max-w-5xl mx-auto p-6 md:p-8 space-y-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-between items-center"
+          className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
         >
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-2">Ankündigungen</h1>
@@ -100,17 +100,18 @@ export default function Announcements() {
           </div>
           {user?.role === "admin" && (
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="cursor-pointer" onClick={() => openDialog()}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Neue Ankündigung
-                </Button>
-              </DialogTrigger>
+              <Button className="cursor-pointer" onClick={() => openDialog()}>
+                <Plus className="w-4 h-4 mr-2" />
+                Neue Ankündigung
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
                     {editingId ? "Ankündigung bearbeiten" : "Neue Ankündigung erstellen"}
                   </DialogTitle>
+                  <DialogDescription>
+                    Erstelle oder bearbeite eine Ankündigung für alle Schüler
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">

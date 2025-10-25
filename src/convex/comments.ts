@@ -21,8 +21,8 @@ export const add = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user || user.role !== "admin") {
-      throw new Error("Only admins can add comments");
+    if (!user) {
+      throw new Error("You must be logged in to add comments");
     }
     return await ctx.db.insert("comments", {
       studentId: args.studentId,

@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Shield, Users, Settings, Trash2, Plus } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function AdminSettings() {
   const { user } = useAuth();
@@ -92,7 +92,7 @@ export default function AdminSettings() {
     if (student) {
       setEditingStudent(student);
       setStudentName(student.name);
-      setStudentImage(student.image);
+      setStudentImage(student.image || "");
       setStudentPhone(student.phone || "");
       setStudentEmail(student.email || "");
     } else {
@@ -107,17 +107,19 @@ export default function AdminSettings() {
 
   const handleSaveStudent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentName.trim() || !studentImage.trim()) {
-      toast.error("Name und Bild sind erforderlich");
+    if (!studentName.trim()) {
+      toast.error("Name ist erforderlich");
       return;
     }
 
     try {
+      const imageUrl = studentImage.trim() || `https://api.dicebear.com/7.x/avataaars/svg?seed=${studentName}`;
+      
       if (editingStudent) {
         await updateStudent({
           id: editingStudent._id,
           name: studentName.trim(),
-          image: studentImage.trim(),
+          image: imageUrl,
           phone: studentPhone.trim() || undefined,
           email: studentEmail.trim() || undefined,
         });
@@ -125,7 +127,7 @@ export default function AdminSettings() {
       } else {
         await addStudent({
           name: studentName.trim(),
-          image: studentImage.trim(),
+          image: imageUrl,
           phone: studentPhone.trim() || undefined,
           email: studentEmail.trim() || undefined,
         });
@@ -290,7 +292,7 @@ export default function AdminSettings() {
                   >
                     <div className="flex items-center gap-4">
                       <img
-                        src={student.image}
+                        src={student.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.name}`}
                         alt={student.name}
                         className="w-10 h-10 rounded-full"
                       />
@@ -333,6 +335,9 @@ export default function AdminSettings() {
               <DialogTitle>
                 {editingStudent ? "Kontakt bearbeiten" : "Neuer Kontakt"}
               </DialogTitle>
+              <DialogDescription>
+                Bild-URL ist optional. Wenn leer, wird ein Platzhalter-Avatar verwendet.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSaveStudent} className="space-y-4">
               <div className="space-y-2">
@@ -344,11 +349,11 @@ export default function AdminSettings() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Bild-URL</Label>
+                <Label>Bild-URL (optional)</Label>
                 <Input
                   value={studentImage}
                   onChange={(e) => setStudentImage(e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://... (leer lassen für Platzhalter)"
                 />
               </div>
               <div className="space-y-2">
