@@ -29,11 +29,10 @@ export default function Todos() {
   const [newTask, setNewTask] = useState("");
   const [newListName, setNewListName] = useState("");
 
-  useState(() => {
-    if (lists && lists.length > 0 && !selectedList) {
-      setSelectedList(lists[0]);
-    }
-  });
+  // Set initial list selection
+  if (lists && lists.length > 0 && !selectedList) {
+    setSelectedList(lists[0]);
+  }
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,23 +121,26 @@ export default function Todos() {
                 <form onSubmit={handleAddTask} className="space-y-4">
                   <div className="space-y-2">
                     <Label>Liste</Label>
-                    <Select value={newListName || selectedList || ""} onValueChange={setNewListName}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Liste wählen oder neue erstellen" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {lists?.map((list) => (
-                          <SelectItem key={list} value={list}>
-                            {list}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      placeholder="Oder neue Liste erstellen..."
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                    />
+                    <div className="space-y-2">
+                      <Select value={newListName || selectedList || ""} onValueChange={setNewListName}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Bestehende Liste wählen" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {lists?.map((list) => (
+                            <SelectItem key={list} value={list}>
+                              {list}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">oder</p>
+                      <Input
+                        placeholder="Neue Liste erstellen..."
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Aufgabe</Label>
