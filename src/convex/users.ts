@@ -86,6 +86,13 @@ export const updateUserProfile = mutation({
     }
     const { userId, ...data } = args;
     await ctx.db.patch(userId, data);
+    
+    // Auto-promote first user to admin if no admins exist
+    const allUsers = await ctx.db.query("users").collect();
+    const hasAdmin = allUsers.some(u => u.role === "admin");
+    if (!hasAdmin && allUsers.length === 1) {
+      await ctx.db.patch(userId, { role: "admin" });
+    }
   },
 });
 
