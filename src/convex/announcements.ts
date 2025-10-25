@@ -23,6 +23,10 @@ export const add = mutation({
     author: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can create announcements");
+    }
     return await ctx.db.insert("announcements", {
       ...args,
       timestamp: Date.now(),

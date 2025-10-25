@@ -29,6 +29,10 @@ export const add = mutation({
     category: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can create events");
+    }
     return await ctx.db.insert("events", args);
   },
 });

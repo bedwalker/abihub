@@ -27,6 +27,10 @@ export const add = mutation({
     task: v.string(),
   },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can add tasks");
+    }
     const existing = await ctx.db
       .query("todos")
       .withIndex("by_list", (q) => q.eq("listName", args.listName))
@@ -42,6 +46,10 @@ export const add = mutation({
 export const toggle = mutation({
   args: { id: v.id("todos") },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can toggle tasks");
+    }
     const todo = await ctx.db.get(args.id);
     if (!todo) return;
     await ctx.db.patch(args.id, { completed: !todo.completed });
@@ -51,6 +59,10 @@ export const toggle = mutation({
 export const remove = mutation({
   args: { id: v.id("todos") },
   handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can delete tasks");
+    }
     await ctx.db.delete(args.id);
   },
 });
