@@ -10,6 +10,14 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 import Landing from "./pages/Landing.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
+import Profiles from "./pages/Profiles.tsx";
+import Finances from "./pages/Finances.tsx";
+import Announcements from "./pages/Announcements.tsx";
+import Events from "./pages/Events.tsx";
+import Todos from "./pages/Todos.tsx";
+import Gallery from "./pages/Gallery.tsx";
+import Contacts from "./pages/Contacts.tsx";
 import "./types/global.d.ts";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
@@ -49,7 +57,15 @@ createRoot(document.getElementById("root")!).render(
           <RouteSyncer />
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/auth" element={<AuthPage redirectAfterAuth="/" />} /> {/* TODO: change redirect after auth to correct page */}
+            <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profiles" element={<Profiles />} />
+            <Route path="/finances" element={<Finances />} />
+            <Route path="/announcements" element={<Announcements />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/todos" element={<Todos />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contacts" element={<Contacts />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

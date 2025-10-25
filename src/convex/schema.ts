@@ -32,12 +32,61 @@ const schema = defineSchema(
       role: v.optional(roleValidator), // role of the user. do not remove
     }).index("email", ["email"]), // index for the email. do not remove or modify
 
-    // add other tables here
+    students: defineTable({
+      name: v.string(),
+      image: v.string(),
+      phone: v.optional(v.string()),
+      email: v.optional(v.string()),
+    }),
 
-    // tableName: defineTable({
-    //   ...
-    //   // table fields
-    // }).index("by_field", ["field"])
+    comments: defineTable({
+      studentId: v.id("students"),
+      authorName: v.string(),
+      text: v.string(),
+      timestamp: v.number(),
+    }).index("by_student", ["studentId"]),
+
+    finances: defineTable({
+      type: v.union(v.literal("income"), v.literal("expense")),
+      amount: v.number(),
+      description: v.string(),
+      date: v.string(),
+    }),
+
+    announcements: defineTable({
+      title: v.string(),
+      text: v.string(),
+      author: v.string(),
+      timestamp: v.number(),
+    }),
+
+    events: defineTable({
+      title: v.string(),
+      description: v.string(),
+      date: v.string(),
+      time: v.string(),
+      location: v.string(),
+      category: v.string(),
+    }),
+
+    todos: defineTable({
+      listName: v.string(),
+      task: v.string(),
+      completed: v.boolean(),
+      order: v.number(),
+    }).index("by_list", ["listName"]),
+
+    photos: defineTable({
+      url: v.string(),
+      title: v.string(),
+      eventName: v.string(),
+      date: v.string(),
+    }).index("by_event", ["eventName"]),
+
+    settings: defineTable({
+      key: v.string(),
+      value: v.string(),
+    }).index("by_key", ["key"]),
   },
   {
     schemaValidation: false,
