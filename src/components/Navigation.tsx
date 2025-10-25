@@ -1,9 +1,10 @@
-import { Home, Users, Euro, Megaphone, Calendar, CheckSquare, Camera, Phone, Settings, MoreHorizontal } from "lucide-react";
+import { Home, Users, Euro, Megaphone, Calendar, CheckSquare, Camera, Phone, Settings, MoreHorizontal, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { path: "/dashboard", icon: Home, label: "Dashboard" },
@@ -18,8 +19,13 @@ const navItems = [
 
 export function Navigation() {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -100,6 +106,9 @@ export function Navigation() {
             <SheetContent side="bottom" className="h-[80vh]">
               <SheetHeader>
                 <SheetTitle>Alle Seiten</SheetTitle>
+                <SheetDescription>
+                  Navigiere zu allen verfügbaren Seiten
+                </SheetDescription>
               </SheetHeader>
               <nav className="mt-6 space-y-2">
                 {navItems.map((item) => {
@@ -137,6 +146,16 @@ export function Navigation() {
                     <span className="font-medium">Admin</span>
                   </Link>
                 )}
+                <div className="pt-4 mt-4 border-t">
+                  <Button
+                    variant="outline"
+                    className="w-full cursor-pointer"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="w-5 h-5 mr-2" />
+                    Abmelden
+                  </Button>
+                </div>
               </nav>
             </SheetContent>
           </Sheet>
