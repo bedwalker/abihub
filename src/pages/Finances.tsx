@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
-import { ArrowDownCircle, ArrowUpCircle, Plus } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, Plus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -12,14 +12,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Finances() {
   const transactions = useQuery(api.finances.list);
   const balance = useQuery(api.finances.getBalance);
   const targetAmountSetting = useQuery(api.settings.get, { key: "targetAmount" });
   const addTransaction = useMutation(api.finances.add);
+  const updateTransaction = useMutation(api.finances.update);
+  const removeTransaction = useMutation(api.finances.remove);
+  const { user } = useAuth();
 
   const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<any>(null);
   const [type, setType] = useState<"income" | "expense">("income");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -31,6 +37,48 @@ export default function Finances() {
 
   const income = transactions?.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0) || 0;
   const expenses = transactions?.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0) || 0;
+
+  const openEditDialog = (transaction: any) => {
+    setEditingTransaction(transaction);
+    setType(transaction.type);
+    setAmount(transaction.amount.toString());
+    setDescription(transaction.description);
+    setDate(transaction.date);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!amount || !description || !editingTransaction) {
+      toast.error("Bitte fülle alle Felder aus");
+      return;
+    }
+
+    try {
+      await updateTransaction({
+        id: editingTransaction._id,
+        type,
+        amount: parseFloat(amount),
+        description,
+        date,
+      });
+      toast.success("Transaktion aktualisiert!");
+      setEditDialogOpen(false);
+      setEditingTransaction(null);
+    } catch (error) {
+      toast.error("Fehler beim Aktualisieren der Transaktion");
+    }
+  };
+
+  const handleDelete = async (transactionId: string) => {
+    if (!confirm("Möchtest du diese Transaktion wirklich löschen?")) return;
+    try {
+      await removeTransaction({ id: transactionId as any });
+      toast.success("Transaktion gelöscht!");
+    } catch (error) {
+      toast.error("Fehler beim Löschen der Transaktion");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,20 +276,90 @@ export default function Finances() {
                         <p className="text-sm text-muted-foreground">{transaction.date}</p>
                       </div>
                     </div>
-                    <p
-                      className={`text-xl font-bold ${
-                        transaction.type === "income" ? "text-green-500" : "text-red-500"
-                      }`}
-                    >
-                      {transaction.type === "income" ? "+" : "-"}
-                      {transaction.amount.toFixed(2)}€
-                    </p>
+                    <div className="flex items-center gap-3">
+                      <p
+                        className={`text-xl font-bold ${
+                          transaction.type === "income" ? "text-green-500" : "text-red-500"
+                        }`}
+                      >
+                        {transaction.type === "income" ? "+" : "-"}
+                        {transaction.amount.toFixed(2)}€
+                      </p>
+                      {user?.role === "admin" && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openEditDialog(transaction)}
+                            className="cursor-pointer"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDelete(transaction._id)}
+                            className="cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Edit Transaction Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Transaktion bearbeiten</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Typ</Label>
+                <Select value={type} onValueChange={(v) => setType(v as "income" | "expense")}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Einnahme</SelectItem>
+                    <SelectItem value="expense">Ausgabe</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Betrag (€)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Beschreibung</Label>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="z.B. Kuchenverkauf"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Datum</Label>
+                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              </div>
+              <Button type="submit" className="w-full cursor-pointer">
+                Aktualisieren
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

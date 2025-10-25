@@ -19,6 +19,7 @@ import Todos from "./pages/Todos.tsx";
 import Gallery from "./pages/Gallery.tsx";
 import Contacts from "./pages/Contacts.tsx";
 import AdminSettings from "./pages/AdminSettings.tsx";
+import ProfileSetup from "./pages/ProfileSetup.tsx";
 import "./types/global.d.ts";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
@@ -59,6 +60,7 @@ createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profiles" element={<Profiles />} />
             <Route path="/finances" element={<Finances />} />
