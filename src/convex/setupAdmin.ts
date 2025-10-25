@@ -1,4 +1,5 @@
-import { internalMutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
 export const makeFirstUserAdmin = internalMutation({
   args: {},
@@ -19,5 +20,24 @@ export const makeFirstUserAdmin = internalMutation({
 
     await ctx.db.patch(firstUser._id, { role: "admin" });
     console.log(`Made user ${firstUser.email || firstUser.name || firstUser._id} an admin`);
+  },
+});
+
+export const makeUserAdminByEmail = mutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const users = await ctx.db.query("users").collect();
+    const user = users.find(u => u.email === args.email);
+    
+    if (!user) {
+      throw new Error(`User with email ${args.email} not found`);
+    }
+    
+    if (user.role === "admin") {
+      return { success: true, message: "User is already an admin" };
+    }
+    
+    await ctx.db.patch(user._id, { role: "admin" });
+    return { success: true, message: `Made ${user.email} an admin` };
   },
 });
