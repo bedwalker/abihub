@@ -10,7 +10,7 @@ import { api } from "@/convex/_generated/api";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { Camera, Loader2, Upload } from "lucide-react";
+import { Camera, Loader2, Upload, Trash2 } from "lucide-react";
 
 export default function MyProfile() {
   const { user } = useAuth();
@@ -181,18 +181,35 @@ export default function MyProfile() {
                     onChange={handleImageUpload}
                     className="hidden"
                   />
-                  <div className="text-center">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading || isSubmitting}
-                      className="cursor-pointer"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      {isUploading ? "Wird hochgeladen..." : "Bild hochladen"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">
+                  <div className="text-center space-y-2">
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploading || isSubmitting}
+                        className="cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {isUploading ? "Wird hochgeladen..." : "Bild hochladen"}
+                      </Button>
+                      {imageUrl && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          onClick={() => {
+                            setImageUrl("");
+                            toast.success("Profilbild entfernt");
+                          }}
+                          disabled={isUploading || isSubmitting}
+                          className="cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Löschen
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
                       JPG, PNG oder GIF (max. 5MB)
                     </p>
                   </div>

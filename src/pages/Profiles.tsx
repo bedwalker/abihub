@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -14,6 +14,24 @@ import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
 import { useAuth } from "@/hooks/use-auth";
+
+// Helper component to display profile image with storage URL resolution
+function ProfileImage({ imageId, name }: { imageId?: string; name: string }) {
+  const storageUrl = useQuery(
+    api.users.getStorageUrl,
+    imageId && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
+  );
+
+  const displayImage = storageUrl || (imageId?.startsWith("http") ? imageId : null) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+
+  return (
+    <img
+      src={displayImage}
+      alt={name}
+      className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+    />
+  );
+}
 
 export default function Profiles() {
   const students = useQuery(api.students.list);
@@ -46,7 +64,7 @@ export default function Profiles() {
     ...authenticatedUsers.map(u => ({ 
       _id: u._id, 
       name: u.name!, 
-      image: u.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
+      image: u.image,
       email: u.email,
       phone: u.phone,
       description: u.description,
@@ -163,11 +181,7 @@ export default function Profiles() {
                 onClick={() => profile.type === 'student' && setSelectedStudent(profile._id as Id<"students">)}
               >
                 <CardContent className="p-6 text-center">
-                  <img
-                    src={profile.image}
-                    alt={profile.name}
-                    className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
-                  />
+                  <ProfileImage imageId={profile.image} name={profile.name} />
                   <p className="font-medium">{profile.name}</p>
                   {profile.type === 'user' && (
                     <p className="text-xs text-muted-foreground mt-1">Benutzer</p>

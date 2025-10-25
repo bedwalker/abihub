@@ -6,6 +6,24 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Mail, Phone, Search, Edit } from "lucide-react";
+
+// Helper component to display profile image with storage URL resolution
+function ProfileImage({ imageId, name, className = "w-16 h-16 rounded-full" }: { imageId?: string; name: string; className?: string }) {
+  const storageUrl = useQuery(
+    api.users.getStorageUrl,
+    imageId && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
+  );
+
+  const displayImage = storageUrl || (imageId?.startsWith("http") ? imageId : null) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+
+  return (
+    <img
+      src={displayImage}
+      alt={name}
+      className={className}
+    />
+  );
+}
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -113,10 +131,10 @@ export default function Contacts() {
                   </Button>
                 </div>
                 <div className="flex items-center gap-4 mb-4">
-                  <img
-                    src={currentUserProfile.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUserProfile.name}`}
-                    alt={currentUserProfile.name || "User"}
-                    className="w-16 h-16 rounded-full"
+                  <ProfileImage 
+                    imageId={currentUserProfile.image} 
+                    name={currentUserProfile.name || "User"}
+                    className="w-16 h-16 rounded-full object-cover"
                   />
                   <div>
                     <h3 className="font-bold text-lg">{currentUserProfile.name || "Unbenannt"}</h3>
@@ -159,10 +177,10 @@ export default function Contacts() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <img
-                      src={student.image}
-                      alt={student.name}
-                      className="w-16 h-16 rounded-full"
+                    <ProfileImage 
+                      imageId={student.image} 
+                      name={student.name}
+                      className="w-16 h-16 rounded-full object-cover"
                     />
                     <div>
                       <h3 className="font-bold text-lg">{student.name}</h3>
