@@ -147,14 +147,26 @@ export function Navigation() {
                   </Link>
                 )}
                 <div className="pt-4 mt-4 border-t">
-                  <Button
-                    variant="outline"
-                    className="w-full cursor-pointer"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="w-5 h-5 mr-2" />
-                    Abmelden
-                  </Button>
+                  {user ? (
+                    <Button
+                      variant="outline"
+                      className="w-full cursor-pointer"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="w-5 h-5 mr-2" />
+                      Abmelden
+                    </Button>
+                  ) : (
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
+                        <LogOut className="w-5 h-5 mr-2" />
+                        Anmelden
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </nav>
             </SheetContent>
