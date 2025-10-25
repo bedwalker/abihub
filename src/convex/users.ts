@@ -85,7 +85,16 @@ export const updateUserProfile = mutation({
       throw new Error("You can only edit your own profile");
     }
     const { userId, ...data } = args;
-    await ctx.db.patch(userId, data);
+    
+    // Filter out undefined values, but keep empty strings to allow clearing fields
+    const updateData: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
+    }
+    
+    await ctx.db.patch(userId, updateData);
     
     // Auto-promote first user to admin if no admins exist
     const allUsers = await ctx.db.query("users").collect();

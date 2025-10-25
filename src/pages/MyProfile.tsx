@@ -197,9 +197,19 @@ export default function MyProfile() {
                         <Button
                           type="button"
                           variant="destructive"
-                          onClick={() => {
-                            setImageUrl("");
-                            toast.success("Profilbild entfernt");
+                          onClick={async () => {
+                            try {
+                              setImageUrl("");
+                              if (user) {
+                                await updateProfile({
+                                  userId: user._id,
+                                  image: "",
+                                });
+                              }
+                              toast.success("Profilbild entfernt");
+                            } catch (error) {
+                              toast.error("Fehler beim Löschen des Profilbildes");
+                            }
                           }}
                           disabled={isUploading || isSubmitting}
                           className="cursor-pointer"
