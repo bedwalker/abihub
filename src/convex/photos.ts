@@ -40,7 +40,13 @@ export const add = mutation({
     date: v.string(),
   },
   handler: async (ctx, args) => {
-    // Anyone can upload photos
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      throw new Error("You must be logged in to upload photos");
+    }
+    if (user.isAnonymous) {
+      throw new Error("Anonymous users cannot upload photos");
+    }
     return await ctx.db.insert("photos", args);
   },
 });

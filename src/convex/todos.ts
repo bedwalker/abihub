@@ -18,6 +18,9 @@ export const add = mutation({
     if (!user) {
       throw new Error("You must be logged in to add tasks");
     }
+    if (user.isAnonymous) {
+      throw new Error("Anonymous users cannot add tasks");
+    }
     const existing = await ctx.db.query("todos").collect();
     return await ctx.db.insert("todos", {
       task: args.task,

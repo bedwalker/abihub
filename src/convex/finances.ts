@@ -21,6 +21,9 @@ export const add = mutation({
     if (!user) {
       throw new Error("You must be logged in to add transactions");
     }
+    if (user.isAnonymous) {
+      throw new Error("Anonymous users cannot add transactions");
+    }
     return await ctx.db.insert("finances", args);
   },
 });

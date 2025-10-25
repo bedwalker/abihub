@@ -24,6 +24,9 @@ export const add = mutation({
     if (!user) {
       throw new Error("You must be logged in to add comments");
     }
+    if (user.isAnonymous) {
+      throw new Error("Anonymous users cannot add comments");
+    }
     return await ctx.db.insert("comments", {
       studentId: args.studentId,
       authorName: args.authorName,
