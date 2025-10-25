@@ -1,1 +1,1 @@
-npx convex run dataExport:exportAllData > data-backup.json
+npx convex run dataExport:importAllData --arg 'data' @data-export-backup.json

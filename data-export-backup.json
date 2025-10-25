@@ -1,0 +1,52 @@
+[CONVEX ?(dataExport:exportAllData)] [LOG] '=== DATA EXPORT ==='
+[CONVEX ?(dataExport:exportAllData)] [LOG] '{\n  "exportDate": "2025-10-25T17:40:23.335Z",\n  "users": [\n    {\n      "name": "Ahmad Sohail Zamani",\n      "email": "ahmadzamani187@gmail.com",\n      "role": "admin",\n      "image": ""\n    },\n    {\n      "email": "ahmadvoice123@gmail.com"\n    }\n  ],\n  "students": [],\n  "comments": [],\n  "finances": [],\n  "announcements": [],\n  "events": [],\n  "todos": [\n    {\n      "_creationTime": 1761411704458.9514,\n      "_id": "kd79k17g1vas06fvtrbe3cd4b97t5tgj",\n      "completed": false,\n      "order": 0,\n      "task": "fsd"\n    }\n  ],\n  "photos": [\n    {\n      "title": "d",\n      "eventName": "r3w",\n      "date": "2025-10-25"\n    }\n  ],\n  "settings": [\n    {\n      "_creationTime": 1761402150315.5068,\n      "_id": "k973t7dbc7acd5m91cepbg85y17t4etn",\n      "key": "abiDate",\n      "value": "2027-07-25"\n    },\n    {\n      "_creationTime": 1761402150315.507,\n      "_id": "k9779r68stn6mzp16yzyye2h8x7t5jzz",\n      "key": "targetAmount",\n      "value": "7000"\n    }\n  ]\n}'
+[CONVEX ?(dataExport:exportAllData)] [LOG] '==================='
+{
+  "announcements": [],
+  "comments": [],
+  "events": [],
+  "exportDate": "2025-10-25T17:40:23.335Z",
+  "finances": [],
+  "photos": [
+    {
+      "date": "2025-10-25",
+      "eventName": "r3w",
+      "title": "d"
+    }
+  ],
+  "settings": [
+    {
+      "_creationTime": 1761402150315.5068,
+      "_id": "k973t7dbc7acd5m91cepbg85y17t4etn",
+      "key": "abiDate",
+      "value": "2027-07-25"
+    },
+    {
+      "_creationTime": 1761402150315.507,
+      "_id": "k9779r68stn6mzp16yzyye2h8x7t5jzz",
+      "key": "targetAmount",
+      "value": "7000"
+    }
+  ],
+  "students": [],
+  "todos": [
+    {
+      "_creationTime": 1761411704458.9514,
+      "_id": "kd79k17g1vas06fvtrbe3cd4b97t5tgj",
+      "completed": false,
+      "order": 0,
+      "task": "fsd"
+    }
+  ],
+  "users": [
+    {
+      "email": "ahmadzamani187@gmail.com",
+      "image": "",
+      "name": "Ahmad Sohail Zamani",
+      "role": "admin"
+    },
+    {
+      "email": "ahmadvoice123@gmail.com"
+    }
+  ]
+}
