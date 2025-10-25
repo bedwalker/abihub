@@ -1,21 +1,65 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Mail, Phone, Search } from "lucide-react";
+import { Mail, Phone, Search, Edit } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
+import { Id } from "@/convex/_generated/dataModel";
 
 export default function Contacts() {
   const students = useQuery(api.students.list);
+  const allUsers = useQuery(api.users.listAllUsers);
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<Id<"users"> | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  
+  const updateUserProfile = useMutation(api.users.updateUserProfile);
 
   const filteredStudents = students?.filter((student) =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const sortedStudents = filteredStudents?.sort((a, b) => a.name.localeCompare(b.name));
+
+  const openEditDialog = (userId: Id<"users">) => {
+    const userToEdit = allUsers?.find(u => u._id === userId);
+    if (userToEdit) {
+      setEditingUserId(userId);
+      setEditName(userToEdit.name || "");
+      setEditEmail(userToEdit.email || "");
+      setEditDialogOpen(true);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUserId) return;
+
+    try {
+      await updateUserProfile({
+        userId: editingUserId,
+        name: editName.trim() || undefined,
+        email: editEmail.trim() || undefined,
+      });
+      toast.success("Profil aktualisiert!");
+      setEditDialogOpen(false);
+    } catch (error) {
+      toast.error("Fehler beim Aktualisieren des Profils");
+    }
+  };
+
+  // Find current user's profile in the users list
+  const currentUserProfile = allUsers?.find(u => u._id === user?._id);
 
   return (
     <Layout>
@@ -39,6 +83,51 @@ export default function Contacts() {
             className="pl-10"
           />
         </div>
+
+        {/* Current User Profile Card */}
+        {currentUserProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Card className="border-2 border-primary">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold">Mein Profil</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditDialog(currentUserProfile._id)}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Bearbeiten
+                  </Button>
+                </div>
+                <div className="flex items-center gap-4 mb-4">
+                  <img
+                    src={currentUserProfile.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUserProfile.name}`}
+                    alt={currentUserProfile.name || "User"}
+                    className="w-16 h-16 rounded-full"
+                  />
+                  <div>
+                    <h3 className="font-bold text-lg">{currentUserProfile.name || "Unbenannt"}</h3>
+                    <p className="text-sm text-muted-foreground">{currentUserProfile.role || "user"}</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {currentUserProfile.email && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="w-4 h-4" />
+                      <span>{currentUserProfile.email}</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Contacts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -84,6 +173,40 @@ export default function Contacts() {
             </motion.div>
           ))}
         </div>
+
+        {/* Edit Profile Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Profil bearbeiten</DialogTitle>
+              <DialogDescription>
+                Bearbeite deine Profilinformationen
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Dein Name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>E-Mail</Label>
+                <Input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder="deine@email.com"
+                />
+              </div>
+              <Button type="submit" className="w-full cursor-pointer">
+                Speichern
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

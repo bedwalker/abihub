@@ -66,8 +66,12 @@ export const updateUserProfile = mutation({
   },
   handler: async (ctx, args) => {
     const currentUser = await getCurrentUser(ctx);
-    if (!currentUser || currentUser.role !== "admin") {
-      throw new Error("Only admins can update user profiles");
+    if (!currentUser) {
+      throw new Error("You must be logged in to update profiles");
+    }
+    // Users can edit their own profile, admins can edit any profile
+    if (currentUser._id !== args.userId && currentUser.role !== "admin") {
+      throw new Error("You can only edit your own profile");
     }
     const { userId, ...data } = args;
     await ctx.db.patch(userId, data);

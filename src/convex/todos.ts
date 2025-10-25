@@ -15,8 +15,8 @@ export const add = mutation({
   },
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    if (!user || user.role !== "admin") {
-      throw new Error("Only admins can add tasks");
+    if (!user) {
+      throw new Error("You must be logged in to add tasks");
     }
     const existing = await ctx.db.query("todos").collect();
     return await ctx.db.insert("todos", {
