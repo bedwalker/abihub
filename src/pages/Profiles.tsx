@@ -5,10 +5,11 @@ import { api } from "@/convex/_generated/api";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Edit } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { useMutation } from "convex/react";
 import { toast } from "sonner";
 import { Id } from "@/convex/_generated/dataModel";
@@ -20,6 +21,12 @@ export default function Profiles() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<Id<"students"> | null>(null);
   const [commentText, setCommentText] = useState("");
+  const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const { user } = useAuth();
 
   const comments = useQuery(
@@ -28,6 +35,8 @@ export default function Profiles() {
   );
   const addComment = useMutation(api.comments.add);
   const removeComment = useMutation(api.comments.remove);
+  const updateUserProfile = useMutation(api.users.updateUserProfile);
+  const deleteUser = useMutation(api.users.deleteUser);
 
   // Combine students and authenticated users (excluding anonymous users)
   const authenticatedUsers = allUsers?.filter(u => !u.isAnonymous && u.name) || [];
@@ -38,6 +47,9 @@ export default function Profiles() {
       _id: u._id, 
       name: u.name!, 
       image: u.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`,
+      email: u.email,
+      phone: u.phone,
+      description: u.description,
       type: 'user' as const 
     }))
   ];
@@ -76,6 +88,44 @@ export default function Profiles() {
     }
   };
 
+  const openEditUserDialog = (userProfile: any) => {
+    setEditingUser(userProfile);
+    setEditName(userProfile.name || "");
+    setEditEmail(userProfile.email || "");
+    setEditPhone(userProfile.phone || "");
+    setEditDescription(userProfile.description || "");
+    setEditUserDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      await updateUserProfile({
+        userId: editingUser._id,
+        name: editName.trim() || undefined,
+        email: editEmail.trim() || undefined,
+        phone: editPhone.trim() || undefined,
+        description: editDescription.trim() || undefined,
+      });
+      toast.success("Profil aktualisiert!");
+      setEditUserDialogOpen(false);
+    } catch (error) {
+      toast.error("Fehler beim Aktualisieren des Profils");
+    }
+  };
+
+  const handleDeleteUser = async (userId: Id<"users">) => {
+    if (!confirm("Möchtest du dieses Profil wirklich löschen?")) return;
+    try {
+      await deleteUser({ userId });
+      toast.success("Profil gelöscht!");
+    } catch (error) {
+      toast.error("Fehler beim Löschen des Profils");
+    }
+  };
+
   return (
     <Layout>
       <div className="container max-w-7xl mx-auto p-6 md:p-8 space-y-8">
@@ -109,18 +159,46 @@ export default function Profiles() {
               transition={{ duration: 0.3, delay: index * 0.05 }}
             >
               <Card
-                className="cursor-pointer hover:shadow-lg transition-shadow"
+                className="cursor-pointer hover:shadow-lg transition-shadow relative group"
                 onClick={() => profile.type === 'student' && setSelectedStudent(profile._id as Id<"students">)}
               >
                 <CardContent className="p-6 text-center">
                   <img
                     src={profile.image}
                     alt={profile.name}
-                    className="w-24 h-24 rounded-full mx-auto mb-4"
+                    className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                   />
                   <p className="font-medium">{profile.name}</p>
                   {profile.type === 'user' && (
                     <p className="text-xs text-muted-foreground mt-1">Benutzer</p>
+                  )}
+                  
+                  {/* Admin controls for user profiles */}
+                  {user?.role === "admin" && profile.type === 'user' && (
+                    <div className="flex gap-2 justify-center mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditUserDialog(profile);
+                        }}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteUser(profile._id as Id<"users">);
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -206,6 +284,58 @@ export default function Profiles() {
                 )}
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit User Profile Dialog */}
+        <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Benutzerprofil bearbeiten</DialogTitle>
+              <DialogDescription>
+                Bearbeite die Profilinformationen dieses Benutzers
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>E-Mail</Label>
+                <Input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Telefon</Label>
+                <Input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+49 123 456789"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Beschreibung</Label>
+                <Textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Über mich..."
+                  rows={3}
+                />
+              </div>
+              <Button type="submit" className="w-full cursor-pointer">
+                Aktualisieren
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
