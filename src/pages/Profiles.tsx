@@ -152,7 +152,7 @@ export default function Profiles() {
 
             <div className="space-y-6 mt-6">
               {/* Add Comment Form */}
-              {user && !user.isAnonymous && (
+              {user && !user.isAnonymous && user.name && (
                 <div className="space-y-4 p-4 bg-muted rounded-lg">
                   <h3 className="font-medium">Neuer Kommentar</h3>
                   <p className="text-sm text-muted-foreground">

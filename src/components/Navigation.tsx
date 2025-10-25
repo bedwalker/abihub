@@ -148,7 +148,7 @@ export function Navigation() {
                 )}
                 <div className="pt-4 mt-4 border-t space-y-2">
                   {user && !user.isAnonymous && (
-                    <Link to="/contacts" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/my-profile" onClick={() => setMobileMenuOpen(false)}>
                       <Button
                         variant="outline"
                         className="w-full cursor-pointer"
