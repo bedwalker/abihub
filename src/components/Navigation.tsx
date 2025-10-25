@@ -68,7 +68,7 @@ export function Navigation() {
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t z-50">
         <div className="flex justify-around items-center h-16">
-          {navItems.slice(0, 5).map((item) => {
+          {navItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
@@ -85,6 +85,18 @@ export function Navigation() {
               </Link>
             );
           })}
+          {user?.role === "admin" && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 px-3 py-2 cursor-pointer",
+                location.pathname === "/admin" ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-xs">Admin</span>
+            </Link>
+          )}
         </div>
       </nav>
     </>

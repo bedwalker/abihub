@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -19,12 +19,14 @@ export default function Gallery() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [eventName, setEventName] = useState("");
   const [title, setTitle] = useState("");
-  const [photoUrl, setPhotoUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { user } = useAuth();
   const addPhoto = useMutation(api.photos.add);
   const removePhoto = useMutation(api.photos.remove);
+  const generateUploadUrl = useMutation(api.photos.generateUploadUrl);
 
   const events = Array.from(new Set(photos?.map((p) => p.eventName) || []));
   const filteredPhotos = filterEvent === "all" 
@@ -33,26 +35,43 @@ export default function Gallery() {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!eventName.trim() || !photoUrl.trim()) {
-      toast.error("Bitte Event und Foto-URL angeben");
+    if (!eventName.trim() || !selectedFile) {
+      toast.error("Bitte Event und Foto auswählen");
       return;
     }
 
+    setIsUploading(true);
     try {
+      // Get upload URL
+      const uploadUrl = await generateUploadUrl();
+      
+      // Upload file to Convex storage
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": selectedFile.type },
+        body: selectedFile,
+      });
+      
+      const { storageId } = await result.json();
+
+      // Save photo metadata
       await addPhoto({
-        url: photoUrl,
+        storageId,
         title: title.trim() || "Unbenannt",
         eventName: eventName.trim(),
         date,
       });
+      
       toast.success("Foto hochgeladen!");
       setUploadOpen(false);
       setEventName("");
       setTitle("");
-      setPhotoUrl("");
+      setSelectedFile(null);
       setDate(new Date().toISOString().split("T")[0]);
     } catch (error) {
       toast.error("Fehler beim Hochladen");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -122,19 +141,27 @@ export default function Gallery() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Foto-URL</Label>
-                    <Input
-                      value={photoUrl}
-                      onChange={(e) => setPhotoUrl(e.target.value)}
-                      placeholder="https://..."
-                    />
+                    <Label>Foto hochladen</Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        className="cursor-pointer"
+                      />
+                      {selectedFile && (
+                        <span className="text-sm text-muted-foreground">
+                          {selectedFile.name}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Datum</Label>
                     <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
                   </div>
-                  <Button type="submit" className="w-full cursor-pointer">
-                    Hochladen
+                  <Button type="submit" className="w-full cursor-pointer" disabled={isUploading}>
+                    {isUploading ? "Wird hochgeladen..." : "Hochladen"}
                   </Button>
                 </form>
               </DialogContent>
@@ -154,7 +181,7 @@ export default function Gallery() {
               onClick={() => setSelectedPhoto(photo.url)}
             >
               <img
-                src={photo.url}
+                src={photo.url || ""}
                 alt={photo.title}
                 className="w-full h-full object-cover transition-transform group-hover:scale-110"
               />
@@ -181,15 +208,17 @@ export default function Gallery() {
         </div>
 
         {/* Photo Detail Dialog */}
-        <Dialog open={selectedPhoto !== null} onOpenChange={() => setSelectedPhoto(null)}>
-          <DialogContent className="max-w-4xl p-0">
-            <img
-              src={selectedPhoto || ""}
-              alt="Full size"
-              className="w-full h-auto rounded-lg"
-            />
-          </DialogContent>
-        </Dialog>
+        {selectedPhoto && (
+          <Dialog open={selectedPhoto !== null} onOpenChange={() => setSelectedPhoto(null)}>
+            <DialogContent className="max-w-4xl p-0">
+              <img
+                src={selectedPhoto}
+                alt="Full size"
+                className="w-full h-auto rounded-lg"
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </Layout>
   );

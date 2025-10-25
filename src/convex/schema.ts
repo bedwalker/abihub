@@ -77,7 +77,7 @@ const schema = defineSchema(
     }).index("by_list", ["listName"]),
 
     photos: defineTable({
-      url: v.string(),
+      storageId: v.id("_storage"),
       title: v.string(),
       eventName: v.string(),
       date: v.string(),

@@ -2,10 +2,23 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUser } from "./users";
 
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("photos").collect();
+    const photos = await ctx.db.query("photos").collect();
+    return await Promise.all(
+      photos.map(async (photo) => ({
+        ...photo,
+        url: await ctx.storage.getUrl(photo.storageId),
+      }))
+    );
   },
 });
 
@@ -21,7 +34,7 @@ export const listByEvent = query({
 
 export const add = mutation({
   args: {
-    url: v.string(),
+    storageId: v.id("_storage"),
     title: v.string(),
     eventName: v.string(),
     date: v.string(),
