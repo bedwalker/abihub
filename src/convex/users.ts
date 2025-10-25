@@ -1,5 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { query, QueryCtx } from "./_generated/server";
+import { query, QueryCtx, mutation } from "./_generated/server";
+import { v } from "convex/values";
 
 /**
  * Get the current signed in user. Returns null if the user is not signed in.
@@ -31,3 +32,55 @@ export const getCurrentUser = async (ctx: QueryCtx) => {
   }
   return await ctx.db.get(userId);
 };
+
+export const listAllUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const currentUser = await getCurrentUser(ctx);
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Only admins can view all users");
+    }
+    return await ctx.db.query("users").collect();
+  },
+});
+
+export const updateUserRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("user"), v.literal("member")),
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Only admins can update user roles");
+    }
+    await ctx.db.patch(args.userId, { role: args.role });
+  },
+});
+
+export const updateUserProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Only admins can update user profiles");
+    }
+    const { userId, ...data } = args;
+    await ctx.db.patch(userId, data);
+  },
+});
+
+export const deleteUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const currentUser = await getCurrentUser(ctx);
+    if (!currentUser || currentUser.role !== "admin") {
+      throw new Error("Only admins can delete users");
+    }
+    await ctx.db.delete(args.userId);
+  },
+});

@@ -1,6 +1,7 @@
-import { Home, Users, Euro, Megaphone, Calendar, CheckSquare, Camera, Phone } from "lucide-react";
+import { Home, Users, Euro, Megaphone, Calendar, CheckSquare, Camera, Phone, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 const navItems = [
   { path: "/dashboard", icon: Home, label: "Dashboard" },
@@ -15,6 +16,7 @@ const navItems = [
 
 export function Navigation() {
   const location = useLocation();
+  const { user } = useAuth();
 
   return (
     <>
@@ -46,6 +48,20 @@ export function Navigation() {
               </Link>
             );
           })}
+          {user?.role === "admin" && (
+            <Link
+              to="/admin"
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer",
+                location.pathname === "/admin"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              )}
+            >
+              <Settings className="w-5 h-5" />
+              <span className="font-medium">Admin</span>
+            </Link>
+          )}
         </nav>
       </aside>
 

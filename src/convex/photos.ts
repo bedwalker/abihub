@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getCurrentUser } from "./users";
 
 export const list = query({
   args: {},
@@ -27,5 +28,16 @@ export const add = mutation({
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("photos", args);
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("photos") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can delete photos");
+    }
+    await ctx.db.delete(args.id);
   },
 });

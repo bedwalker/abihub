@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getCurrentUser } from "./users";
 
 export const listByStudent = query({
   args: { studentId: v.id("students") },
@@ -25,6 +26,17 @@ export const add = mutation({
       text: args.text,
       timestamp: Date.now(),
     });
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("comments") },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can delete comments");
+    }
+    await ctx.db.delete(args.id);
   },
 });
 

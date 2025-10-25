@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getCurrentUser } from "./users";
 
 export const listByList = query({
   args: { listName: v.string() },
@@ -51,5 +52,22 @@ export const remove = mutation({
   args: { id: v.id("todos") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+  },
+});
+
+export const removeList = mutation({
+  args: { listName: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (!user || user.role !== "admin") {
+      throw new Error("Only admins can delete lists");
+    }
+    const todos = await ctx.db
+      .query("todos")
+      .withIndex("by_list", (q) => q.eq("listName", args.listName))
+      .collect();
+    for (const todo of todos) {
+      await ctx.db.delete(todo._id);
+    }
   },
 });

@@ -18,6 +18,7 @@ import Events from "./pages/Events.tsx";
 import Todos from "./pages/Todos.tsx";
 import Gallery from "./pages/Gallery.tsx";
 import Contacts from "./pages/Contacts.tsx";
+import AdminSettings from "./pages/AdminSettings.tsx";
 import "./types/global.d.ts";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
@@ -66,6 +67,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/todos" element={<Todos />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/contacts" element={<Contacts />} />
+            <Route path="/admin" element={<AdminSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
