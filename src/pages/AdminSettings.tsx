@@ -213,52 +213,67 @@ export default function AdminSettings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {allUsers?.map((u) => (
-                  <div
-                    key={u._id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-4">
-                      {u.image && (
-                        <img
-                          src={u.image}
-                          alt={u.name || "User"}
-                          className="w-10 h-10 rounded-full"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium">{u.name || "Unbenannt"}</p>
-                        <p className="text-sm text-muted-foreground">{u.email || "Keine E-Mail"}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={u.role || "user"}
-                        onValueChange={(role) => handleRoleChange(u._id, role as "admin" | "user" | "member")}
-                      >
-                        <SelectTrigger className="w-[140px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="user">Benutzer</SelectItem>
-                          <SelectItem value="member">Mitglied</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {u._id !== user._id && (
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => handleDeleteUser(u._id)}
-                          className="cursor-pointer"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-medium">Benutzer</th>
+                      <th className="text-left p-3 font-medium">E-Mail</th>
+                      <th className="text-left p-3 font-medium">Rolle</th>
+                      <th className="text-right p-3 font-medium">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allUsers?.map((u) => (
+                      <tr key={u._id} className="border-b hover:bg-muted/50">
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            {u.image && (
+                              <img
+                                src={u.image}
+                                alt={u.name || "User"}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            )}
+                            <span className="font-medium">{u.name || "Unbenannt"}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm text-muted-foreground">
+                          {u.email || "Keine E-Mail"}
+                        </td>
+                        <td className="p-3">
+                          <Select
+                            value={u.role || "user"}
+                            onValueChange={(role) => handleRoleChange(u._id, role as "admin" | "user" | "member")}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="user">Benutzer</SelectItem>
+                              <SelectItem value="member">Mitglied</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex justify-end">
+                            {u._id !== user._id && (
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleDeleteUser(u._id)}
+                                className="cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
