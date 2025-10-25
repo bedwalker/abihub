@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -24,6 +24,12 @@ export default function MyProfile() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get the actual URL for the stored image
+  const storedImageUrl = useQuery(
+    api.users.getStorageUrl,
+    imageUrl && !imageUrl.startsWith("http") ? { storageId: imageUrl } : "skip"
+  );
 
   useEffect(() => {
     if (user) {
@@ -69,9 +75,8 @@ export default function MyProfile() {
 
       const { storageId } = await result.json();
 
-      // Get the URL for the uploaded image
-      const imageUrl = `${import.meta.env.VITE_CONVEX_URL}/api/storage/${storageId}`;
-      setImageUrl(imageUrl);
+      // Store the storageId
+      setImageUrl(storageId);
       toast.success("Bild hochgeladen!");
     } catch (error) {
       console.error("Upload error:", error);
@@ -112,6 +117,9 @@ export default function MyProfile() {
     }
   };
 
+  // Determine which image to display
+  const displayImage = storedImageUrl || (imageUrl?.startsWith("http") ? imageUrl : null) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+
   if (!user) {
     return (
       <Layout>
@@ -149,7 +157,7 @@ export default function MyProfile() {
                 <div className="flex flex-col items-center gap-4">
                   <div className="relative">
                     <img
-                      src={imageUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`}
+                      src={displayImage}
                       alt={name}
                       className="w-32 h-32 rounded-full border-4 border-primary object-cover"
                     />

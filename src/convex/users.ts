@@ -40,6 +40,18 @@ export const listAllUsers = query({
   },
 });
 
+export const getStorageUrl = query({
+  args: { storageId: v.string() },
+  handler: async (ctx, args) => {
+    // Check if it's already a full URL
+    if (args.storageId.startsWith("http")) {
+      return args.storageId;
+    }
+    // Otherwise treat it as a storage ID
+    return await ctx.storage.getUrl(args.storageId as any);
+  },
+});
+
 export const updateUserRole = mutation({
   args: {
     userId: v.id("users"),
