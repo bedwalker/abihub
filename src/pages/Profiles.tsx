@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 function ProfileImage({ imageId, name }: { imageId?: string; name: string }) {
   const storageUrl = useQuery(
     api.users.getStorageUrl,
-    imageId && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
+    imageId && imageId.trim() !== "" && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
   );
 
   const displayImage = storageUrl || (imageId?.startsWith("http") ? imageId : null) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;

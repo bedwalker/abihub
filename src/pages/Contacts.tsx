@@ -11,7 +11,7 @@ import { Mail, Phone, Search, Edit } from "lucide-react";
 function ProfileImage({ imageId, name, className = "w-16 h-16 rounded-full" }: { imageId?: string; name: string; className?: string }) {
   const storageUrl = useQuery(
     api.users.getStorageUrl,
-    imageId && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
+    imageId && imageId.trim() !== "" && !imageId.startsWith("http") ? { storageId: imageId } : "skip"
   );
 
   const displayImage = storageUrl || (imageId?.startsWith("http") ? imageId : null) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
